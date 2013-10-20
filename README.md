@@ -54,5 +54,19 @@ mkimage在linux目录的arch/arm/boo/mkimage
 	sh mkscript.sh linux.auto.txt
 	sh mkscript.sh android.auto.txt
 
+## vi30w 硬件
 
+	AXP202
+	AML-RT5631
+	Sensor MMA7660
+	[GSL1680] Enter gsl_ts_init_ts
+	input: gsl1680 as /devices/i2c-0/0-0040/input/input5
+
+	gc0307 0-0021: chip found @ 0x42 (aml_i2c_adap0)
+	[    3.825101] ADC Keypad Driver init.
+	[    3.828289] chan #4 used for ADC key
+	[    3.831900] menu key(139) registed.
+	[    3.835278] back key(158) registed.
+	[    3.838749] home key(102) registed.
+	Key 116 registed.
 
