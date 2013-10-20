@@ -15,9 +15,9 @@ on init
     loglevel 7
 
     mkdir /system
-    mkdir /data 0771 system system
-    mkdir /cache 0770 system cache
-    mkdir /config 0500 root root
+    mkdir /data 0777 system system
+    mkdir /cache 0777 system cache
+    mkdir /config 0555 root root
 
     # Setup the global environment
     export PATH /sbin:/vendor/bin:/system/sbin:/system/bin:/system/xbin
@@ -86,53 +86,49 @@ on init
     mount cgroup none /dev/cpuctl cpu
     chown system system /dev/cpuctl
     chown system system /dev/cpuctl/tasks
-    chmod 0666 /dev/cpuctl/tasks
+    chmod 0777 /dev/cpuctl/tasks
     write /dev/cpuctl/cpu.shares 1024
 
     mkdir /dev/cpuctl/fg_boost
     chown system system /dev/cpuctl/fg_boost/tasks
-    chmod 0666 /dev/cpuctl/fg_boost/tasks
+    chmod 0777 /dev/cpuctl/fg_boost/tasks
     write /dev/cpuctl/fg_boost/cpu.shares 1024
 
     mkdir /dev/cpuctl/bg_non_interactive
     chown system system /dev/cpuctl/bg_non_interactive/tasks
-    chmod 0666 /dev/cpuctl/bg_non_interactive/tasks
+    chmod 0777 /dev/cpuctl/bg_non_interactive/tasks
     # 5.0 %
     write /dev/cpuctl/bg_non_interactive/cpu.shares 52
 
     # Allow everybody to read the xt_qtaguid resource tracking misc dev.
     # This is needed by any process that uses socket tagging.
-    chmod 0644 /dev/xt_qtaguid
+    chmod 0666 /dev/xt_qtaguid
 
     # Make /system/etc/firmware writable for easier upgrade/install
     mkdir /system/etc/firmware
-    chmod 0666 /system/etc/firmware
+    chmod 0777 /system/etc/firmware
 
 on fs
-    ubiattach mtd@system
-    mount ubifs ubi0_0 /system
-    ubiattach mtd@userdata
-    mount ubifs ubi1_0 /data nosuid nodev
-    mount yaffs2 mtd@cache /cache nosuid nodev
-
+    mount ext3 /dev/block/cardblksd2 /system 
+	chmod -R a+rw /system
+	mount ext3 /dev/block/cardblksd3 /data 
+	mount tmpfs tmpfs /cache
+	
 on post-fs
-    # once everything is setup, no need to modify /
-    #mount rootfs rootfs / ro remount
-
     # We chown/chmod /cache again so because mount is run as root + defaults
     chown system cache /cache
-    chmod 0770 /cache
+    chmod 0777 /cache
 
     # For 3G Dongle
     mount usbfs none /proc/bus/usb
 
     # This may have been created by the recovery system with odd permissions
     chown system cache /cache/recovery
-    chmod 0770 /cache/recovery
+    chmod 0777 /cache/recovery
 
     # Change permissions on vmallocinfo so we can grab it from bugreports
     chown root log /proc/vmallocinfo
-    chmod 0440 /proc/vmallocinfo
+    chmod 0444 /proc/vmallocinfo
 
     # Change permissions on kmsg & sysrq-trigger so bugreports can grab kthread stacks
     chown root system /proc/kmsg
@@ -144,11 +140,11 @@ on post-fs
     mkdir /cache/lost+found 0770 root root
 
     # for CTS requirement
-    chmod 0600 /system/etc/hosts
+    chmod 0666 /system/etc/hosts
 on post-fs-data
     # We chown/chmod /data again so because mount is run as root + defaults
     chown system system /data
-    chmod 0771 /data
+    chmod 0777 /data
 
     # Create dump dir and collect dumps.
     # Do this before we mount cache so eventually we can use cache for
@@ -158,11 +154,11 @@ on post-fs-data
     # Collect apanic data, free resources and re-arm trigger
     copy /proc/apanic_console /data/dontpanic/apanic_console
     chown root log /data/dontpanic/apanic_console
-    chmod 0640 /data/dontpanic/apanic_console
+    chmod 0666 /data/dontpanic/apanic_console
 
     copy /proc/apanic_threads /data/dontpanic/apanic_threads
     chown root log /data/dontpanic/apanic_threads
-    chmod 0640 /data/dontpanic/apanic_threads
+    chmod 0666 /data/dontpanic/apanic_threads
 
     write /proc/apanic_console 1
 
@@ -178,7 +174,7 @@ on post-fs-data
     # Give system access to wpa_supplicant.conf for backup and restore
     mkdir /data/misc/wifi 0770 wifi wifi
     mkdir /data/misc/wifi/sockets 0770 wifi wifi
-    chmod 0770 /data/misc/wifi
+    chmod 0777 /data/misc/wifi
     chmod 0660 /data/misc/wifi/wpa_supplicant.conf
     chown wifi wifi /data/misc/wifi
     chown wifi wifi /data/misc/wifi/sockets
@@ -847,7 +843,7 @@ service usbpm /system/bin/usbtestpm_mx_iddq
     disabled
 
 #service hciattach  /system/bin/logwrapper  /system/bin/hciattach_usi \
-#    -n -s 115200 /dev/ttyS1 bcmbt 921600
+#    -n -s 115200 /dev/ttyS0 bcmbt 921600
 #    user root
 #    group bluetooth net_bt_admin
 #    disabled
@@ -869,7 +865,7 @@ service pptv_support /system/bin/pptv_support.sh
 on property:dev.bootcomplete=1
 
     chown media media /sys/class/vm/mirror
-    chmod 0664 /sys/class/vm/mirror
+    chmod 0666 /sys/class/vm/mirror
     write /sys/class/vm/mirror 0
 #    start calibration
     start usbpm

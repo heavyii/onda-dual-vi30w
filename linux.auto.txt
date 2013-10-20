@@ -1,0 +1,18 @@
+if getkey
+then
+msleep 500
+if getkey
+then
+if fatload mmc 0:1 0x82000000 uImage
+then
+setenv bootargs "root=/dev/mmcblk0p3 rw rootfstype=ext3 rootwait init=/sbin/init console=ttyS0,115200n8 hlt no_console_suspend vmalloc=256m mem=1024m logo=osd1,loaded,panel,debug hdmitx=vdacoff, a9_clk_max=800000000 a9_clk_max=1512000000"
+bootm
+fi
+if fatload mmc 0:1 0x82000000 uImage.android
+then
+bootm
+fi
+fi
+fi
+poweroff
+
